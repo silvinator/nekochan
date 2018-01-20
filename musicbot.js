@@ -426,6 +426,6 @@ exports.run = function(server_name, text_channel_name, voice_channel_name, alias
 	bot.login(process.env.BOT_TOKEN);
 }
 
-exports.setYoutubeKey = function(key) {
+exports.setYoutubeKey = function(AIzaSyA9MfitkyRK8vDdZm47o9XbtZ4CyjbkG5E) {
 	yt_api_key = key;
 }
