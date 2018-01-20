@@ -77,9 +77,9 @@ var commands = [
 	},
 
     {
-        command: "play",
-        description: "Ich füge den Link den du mir gibst zur playlist hinzu Meister, nya",
-        parameters: ["Video URL, video ID, playlist URL"],
+        command: "request",
+        description: "Adds the requested video to the playlist queue",
+        parameters: ["video URL, video ID, playlist URL or alias"],
         execute: function (message, params) {
             if(aliases.hasOwnProperty(params[1].toLowerCase())) {
                 params[1] = aliases[params[1].toLowerCase()];
@@ -98,8 +98,8 @@ var commands = [
 
 	{
 		command: "search",
-		description: "Ich suche die Musik, welche du eingibts Meister, nya",
-		parameters: ["Name"],
+		description: "Searches for a video on YouTube and adds it to the queue",
+		parameters: ["query"],
 		execute: function(message, params) {
 			if(yt_api_key === null) {
 				message.reply("You need a YouTube API key in order to use the !search command. Please see https://github.com/agubelu/discord-music-bot#obtaining-a-youtube-api-key");
@@ -115,15 +115,15 @@ var commands = [
 
 	{
 		command: "np",
-		description: "Zeigt den Song den ich gerade Spiele,,nya",
+		description: "Displays the current song",
 		parameters: [],
 		execute: function(message, params) {
 
-			var response = "Das Lied heißt: ";
+			var response = "Now playing: ";
 			if(is_bot_playing()) {
-				response += "\"" + now_playing_data["title"] + "\" und wurde von" + now_playing_data["user"] + " Vorgeschlagen nya";
+				response += "\"" + now_playing_data["title"] + "\" (requested by " + now_playing_data["user"] + ")";
 			} else {
-				response += "Ich spiele gerade kein Song MEister, nya";
+				response += "nothing!";
 			}
 
 			message.reply(response);
@@ -131,11 +131,31 @@ var commands = [
 	},
 
 	{
-		command: "Hilfe",
-		description: "Zeigt alle Befehle an, nya",
+		command: "setnp",
+		description: "Sets whether the bot will announce the current song or not",
+		parameters: ["on/off"],
+		execute: function(message, params) {
+
+			if(params[1].toLowerCase() == "on") {
+				var response = "Will announce song names in chat";
+				inform_np = true;
+			} else if(params[1].toLowerCase() == "off") {
+				var response = "Will no longer announce song names in chat";
+				inform_np = false;
+			} else {
+				var response = "Sorry?";
+			}
+			
+			message.reply(response);
+		}
+	},
+
+	{
+		command: "commands",
+		description: "Displays this message, duh!",
 		parameters: [],
 		execute: function(message, params) {
-			var response = "Hier sind die Befehle Meister, nya:";
+			var response = "Available commands:";
 			
 			for(var i = 0; i < commands.length; i++) {
 				var c = commands[i];
@@ -154,34 +174,34 @@ var commands = [
 
 	{
 		command: "skip",
-		description: "Ich überspringe den momentanen song, nya",
+		description: "Skips the current song",
 		parameters: [],
 		execute: function(message, params) {
 			if(voice_handler !== null) {
-				message.reply("Ich überspringe den Song, nya.");
+				message.reply("Skipping...");
 				voice_handler.end();
 			} else {
-				message.reply("Ich spiele gerade leider nichts, nya.");
+				message.reply("There is nothing being played.");
 			}
 		}
 	},
 
 	{
-		command: "pl",
-		description: "Ich zeige dir die Liste an songs, welche ich noch Spiele, nya",
+		command: "queue",
+		description: "Displays the queue",
 		parameters: [],
 		execute: function(message, params) {
 			var response = "";
 	
 			if(is_queue_empty()) {
-				response = "Entschuldigund Meister, aber die Playlist ist leider leer, nya";
+				response = "the queue is empty.";
 			} else {
 				var long_queue = queue.length > 30;
 				for(var i = 0; i < (long_queue ? 30 : queue.length); i++) {
-					response += "\"" + queue[i]["title"] + "\" und wurde Vorgeschlagen von " + queue[i]["user"] + ", nya";
+					response += "\"" + queue[i]["title"] + "\" (requested by " + queue[i]["user"] + ")\n";
 				}
 
-				if(long_queue) response += "\n**...und " + (queue.length - 30) + " mehr.**";
+				if(long_queue) response += "\n**...and " + (queue.length - 30) + " more.**";
 			}
 			
 			message.reply(response);
@@ -189,42 +209,137 @@ var commands = [
 	},
 
 	{
-		command: "clearpl",
-		description: "Ich glaube ich vergesse dann alle songs auf der Playlist, nya",
+		command: "clearqueue",
+		description: "Removes all songs from the queue",
 		parameters: [],
 		execute: function(message, params) {
 			queue = [];
-			message.reply("Entschuldigung Meister, aber ich habe die titel auf der Playlist vergessen, nya");
+			message.reply("Queue has been clered!");
 		}
 	},
 
 	{
 		command: "remove",
-		description: "Ich entferne ein Sond den du nicht möchtest, nya",
-		parameters: ["Gewünschter eintrag oder 'last'"],
+		description: "Removes a song from the queue",
+		parameters: ["Request index or 'last'"],
 		execute: function(message, params) {
 			var index = params[1];
 
 			if(is_queue_empty()) {
-				message.reply("Die Playlist ist leider leer, nya");
+				message.reply("The queue is empty");
 				return;
 			} else if(isNaN(index) && index !== "last") {
-				message.reply("Argument '" + index + "' ist leider kein Eintrag, nya");
+				message.reply("Argument '" + index + "' is not a valid index.");
 				return;
 			}
 
 			if(index === "last") { index = queue.length; }
 			index = parseInt(index);
 			if(index < 1 || index > queue.length) {
-				message.reply("Ich kann den Song #" + index + "nicht entfernen, da leider nur " + queue.length + " Songs in der Playiste sind, nya");
+				message.reply("Cannot remove request #" + index + " from the queue (there are only " + queue.length + " requests currently)");
 				return;
 			}
 
 			var deleted = queue.splice(index - 1, 1);
-			message.reply('Ich habe den song "' + deleted[0].title +'" von der Playlist gestrichen, nya .');
+			message.reply('Request "' + deleted[0].title +'" was removed from the queue.');
 		}
-	}
-	];
+	},
+	
+	{
+		command: "aliases",
+		description: "Displays the stored aliases",
+		parameters: [],
+		execute: function(message, params) {
+
+			var response = "Current aliases:";
+			
+			for(var alias in aliases) {
+				if(aliases.hasOwnProperty(alias)) {
+					response += "\n" + alias + " -> " + aliases[alias];
+				}
+			}
+			
+			message.reply(response);
+		}
+	},
+	
+	{
+		command: "setalias",
+		description: "Sets an alias, overriding the previous one if it already exists",
+		parameters: ["alias", "video URL or ID"],
+		execute: function(message, params) {
+
+			var alias = params[1].toLowerCase();
+			var val = params[2];
+			
+			aliases[alias] = val;
+			fs.writeFileSync(aliases_file_path, JSON.stringify(aliases));
+			
+			message.reply("Alias " + alias + " -> " + val + " set successfully.");
+		}
+	},
+	
+	{
+		command: "deletealias",
+		description: "Deletes an existing alias",
+		parameters: ["alias"],
+		execute: function(message, params) {
+
+			var alias = params[1].toLowerCase();
+
+			if(!aliases.hasOwnProperty(alias)) {
+				message.reply("Alias " + alias + " does not exist");
+			} else {
+				delete aliases[alias];
+				fs.writeFileSync(aliases_file_path, JSON.stringify(aliases));
+				message.reply("Alias \"" + alias + "\" deleted successfully.");
+			}
+		}
+	},
+
+	{
+    command: "setusername",
+		description: "Set username of bot",
+		parameters: ["Username or alias"],
+		execute: function (message, params) {
+
+			var userName = params[1];
+			if (aliases.hasOwnProperty(userName.toLowerCase())) {
+				userName = aliases[userName.toLowerCase()];
+			}
+
+			bot.user.setUsername(userName).then(user => {
+				message.reply('✔ Username set!');
+			})
+			.catch((err) => {
+				message.reply('Error: Unable to set username');
+				console.log('Error on setusername command:', err);
+			});
+		}
+	},
+  
+  {
+    command: "setavatar",
+		description: "Set bot avatar, overriding the previous one if it already exists",
+		parameters: ["Image URL or alias"],
+		execute: function (message, params) {
+
+			var url = params[1];
+			if (aliases.hasOwnProperty(url.toLowerCase())) {
+				url = aliases[url.toLowerCase()];
+			}
+
+			bot.user.setAvatar(url).then(user => {
+				message.reply('✔ Avatar set!');
+			})
+			.catch((err) => {
+				message.reply('Error: Unable to set avatar');
+				console.log('Error on setavatar command:', err); 
+      });
+		}
+  }
+
+];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -264,12 +379,12 @@ function add_to_queue(video, message, mute = false) {
 
 	ytdl.getInfo("https://www.youtube.com/watch?v=" + video_id, (error, info) => {
 		if(error) {
-			message.reply("Das Vide(" + video_id + ") gibt es leider nicht, tut mir leid, nya");
+			message.reply("The requested video (" + video_id + ") does not exist or cannot be played.");
 			console.log("Error (" + video_id + "): " + error);
 		} else {
 			queue.push({title: info["title"], id: video_id, user: message.author.username});
 			if (!mute) {
-				message.reply('"' + info["title"] + '" wurde zur Playlist hinzugefügt, nya');
+				message.reply('"' + info["title"] + '" has been added to the queue.');
 			}
 			if(!stopped && !is_bot_playing() && queue.length === 1) {
 				play_next_song();
@@ -280,7 +395,7 @@ function add_to_queue(video, message, mute = false) {
 
 function play_next_song() {
 	if(is_queue_empty()) {
-		text_channel.sendMessage("Die Playlist ist leider leer, nya!");
+		text_channel.sendMessage("The queue is empty!");
 	}
 
 	var video_id = queue[0]["id"];
@@ -291,7 +406,7 @@ function play_next_song() {
 	now_playing_data["user"] = user;
 
 	if(inform_np) {
-		text_channel.sendMessage('Ich spiele nun: "' + title + '" und wurde von' + user + ' vorgeschlagen, nya');
+		text_channel.sendMessage('Now playing: "' + title + '" (requested by ' + user + ')');
 		bot.user.setGame(title);
 	}
 
@@ -391,12 +506,41 @@ function get_video_id(string) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
- var serverName = "Silberne Army";
-var textChannelName = "bot";
-var voiceChannelName = "Laberecke 1";
-var aliasesFile = "alias";
-var botToken = "NDA0Mjc1MDc2NjI0NTQ3ODYw.DUTijg.8AO_TUt7roJrktpkVZHocSH2WCU";
+exports.run = function(server_name, text_channel_name, voice_channel_name, aliases_path, token) {
 
-bot.run(serverName, textChannelName, voiceChannelName, aliasesFile, botToken);
+	aliases_file_path = aliases_path;
 
+	bot.on("ready", () => {
+		var server = bot.guilds.find("Silberne Army", server_name);
+		if(server === null) throw "Couldn't find server '" + server_name + "'";
 
+		var voice_channel = server.channels.find(chn => chn.name === voice_channel_name && chn.type === "voice"); //The voice channel the bot will connect to
+		if(voice_channel === null) throw "Couldn't find voice channel '" + voice_channel_name + "' in server '" + server_name + "'";
+		
+		text_channel = server.channels.find(chn => chn.name === text_channel_name && chn.type === "text"); //The text channel the bot will use to announce stuff
+		if(text_channel === null) throw "Couldn't find text channel '#" + text_channel_name + "' in server '" + server_name + "'";
+
+		voice_channel.join().then(connection => {voice_connection = connection;}).catch(console.error);
+
+		fs.access(aliases_file_path, fs.F_OK, (err) => {
+			if(err) {
+				aliases = {};
+			} else {
+				try {
+					aliases = JSON.parse(fs.readFileSync(aliases_file_path));
+				} catch(err) {
+					aliases = {};
+				}
+			}
+		});
+
+		bot.user.setGame();
+		console.log("Connected!");
+	});
+
+	bot.login(NDA0Mjc1MDc2NjI0NTQ3ODYw.DUTijg.8AO_TUt7roJrktpkVZHocSH2WCU);
+}
+
+exports.setYoutubeKey = function(key) {
+	yt_api_key = key;
+}
