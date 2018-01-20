@@ -391,7 +391,12 @@ function get_video_id(string) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
- 
-	bot.login(NDA0Mjc1MDc2NjI0NTQ3ODYw.DUTqog.hnp8Dr_7mqhSjn29OH2qHKncnGo);
+ var serverName = "Silberne Army";
+var textChannelName = "bot";
+var voiceChannelName = "Laberecke 1";
+var aliasesFile = "alias";
+var botToken = "NDA0Mjc1MDc2NjI0NTQ3ODYw.DUTijg.8AO_TUt7roJrktpkVZHocSH2WCU";
+
+bot.run(serverName, textChannelName, voiceChannelName, aliasesFile, botToken);
 
 
