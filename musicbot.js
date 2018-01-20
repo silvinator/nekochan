@@ -396,7 +396,7 @@ exports.run = function(server_name, text_channel_name, voice_channel_name, alias
 	aliases_file_path = aliases_path;
 
 	bot.on("ready", () => {
-		var server = bot.guilds.find("name", server_name);
+		var server = bot.guilds.find("Silberne Army", server_name);
 		if(server === null) throw "Couldn't find server '" + server_name + "'";
 
 		var voice_channel = server.channels.find(chn => chn.name === voice_channel_name && chn.type === "voice"); //The voice channel the bot will connect to
@@ -423,7 +423,7 @@ exports.run = function(server_name, text_channel_name, voice_channel_name, alias
 		console.log("Connected!");
 	});
 
-	bot.login(process.env.BOT_TOKEN);
+	bot.login(NDA0Mjc1MDc2NjI0NTQ3ODYw.DUTqog.hnp8Dr_7mqhSjn29OH2qHKncnGo);
 }
 
 exports.setYoutubeKey = function(AIzaSyA9MfitkyRK8vDdZm47o9XbtZ4CyjbkG5E) {
