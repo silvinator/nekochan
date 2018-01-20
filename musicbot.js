@@ -391,41 +391,7 @@ function get_video_id(string) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-exports.run = function(server_name, text_channel_name, voice_channel_name, aliases_path, token) {
-
-	aliases_file_path = aliases_path;
-
-	bot.on("ready", () => {
-		var server = bot.guilds.find("Silberne Army", server_name);
-		if(server === null) throw "Couldn't find server '" + server_name + "'";
-
-		var voice_channel = server.channels.find(chn => chn.name === voice_channel_name && chn.type === "voice"); //The voice channel the bot will connect to
-		if(voice_channel === null) throw "Couldn't find voice channel '" + voice_channel_name + "' in server '" + server_name + "'";
-		
-		text_channel = server.channels.find(chn => chn.name === text_channel_name && chn.type === "text"); //The text channel the bot will use to announce stuff
-		if(text_channel === null) throw "Couldn't find text channel '#" + text_channel_name + "' in server '" + server_name + "'";
-
-		voice_channel.join().then(connection => {voice_connection = connection;}).catch(console.error);
-
-		fs.access(aliases_file_path, fs.F_OK, (err) => {
-			if(err) {
-				aliases = {};
-			} else {
-				try {
-					aliases = JSON.parse(fs.readFileSync(aliases_file_path));
-				} catch(err) {
-					aliases = {};
-				}
-			}
-		});
-
-		bot.user.setGame();
-		console.log("Connected!");
-	});
-
+ 
 	bot.login(NDA0Mjc1MDc2NjI0NTQ3ODYw.DUTqog.hnp8Dr_7mqhSjn29OH2qHKncnGo);
-}
 
-exports.setYoutubeKey = function(AIzaSyA9MfitkyRK8vDdZm47o9XbtZ4CyjbkG5E) {
-	yt_api_key = key;
-}
+
